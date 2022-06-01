@@ -1,5 +1,6 @@
 // packages
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -64,11 +65,11 @@ class AuthScreen extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        'ShopApp',
+                        'MyShop',
                         style: TextStyle(
                           color:
                               Theme.of(context).accentTextTheme.headline6.color,
-                          fontSize: 45,
+                          fontSize: 50,
                           fontFamily: 'Anton',
                           fontWeight: FontWeight.normal,
                         ),
@@ -112,22 +113,21 @@ class _AuthCardState extends State<AuthCard> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('An Error Occured'),
+        title: Text('An Error Occurred!'),
         content: Text(message),
-        actions: [
+        actions: <Widget>[
           FlatButton(
+            child: Text('Okay'),
             onPressed: () {
               Navigator.of(ctx).pop();
             },
-            child: Text('Okay'),
-          ),
+          )
         ],
       ),
     );
   }
 
-  void _submit() async {
-    print('Hello');
+  Future<void> _submit() async {
     if (!_formKey.currentState.validate()) {
       // Invalid!
       return;
@@ -139,7 +139,7 @@ class _AuthCardState extends State<AuthCard> {
     try {
       if (_authMode == AuthMode.Login) {
         // Log user in
-        await Provider.of<Auth>(context).login(
+        await Provider.of<Auth>(context, listen: false).login(
           _authData['email'],
           _authData['password'],
         );
@@ -149,27 +149,27 @@ class _AuthCardState extends State<AuthCard> {
           _authData['email'],
           _authData['password'],
         );
-        print('Bye');
       }
-    } on HttpException catch (err) {
-      var errorMessage = 'Authentication Failed';
-      if (err.toString().contains('EMAIL_EXISTS')) {
-        errorMessage = 'Email already in use';
-      } else if (err.toString().contains('INVALID_EMAIL')) {
-        errorMessage = 'Entered Email is not a valid email';
-      } else if (err.toString().contains('WEAK_PASSWORD')) {
-        errorMessage = 'Please Enter a strong password';
-      } else if (err.toString().contains('EMAIL_NOT_FOUND')) {
-        errorMessage = 'Could not find an user with the entered Email';
-      } else if (err.toString().contains('INVALID_PASSWORD')) {
-        errorMessage = 'Invalid Password';
+    } on HttpException catch (error) {
+      var errorMessage = 'Authentication failed';
+      if (error.toString().contains('EMAIL_EXISTS')) {
+        errorMessage = 'This email address is already in use.';
+      } else if (error.toString().contains('INVALID_EMAIL')) {
+        errorMessage = 'This is not a valid email address';
+      } else if (error.toString().contains('WEAK_PASSWORD')) {
+        errorMessage = 'This password is too weak.';
+      } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
+        errorMessage = 'Could not find a user with that email.';
+      } else if (error.toString().contains('INVALID_PASSWORD')) {
+        errorMessage = 'Invalid password.';
       }
       _showErrorDialog(errorMessage);
-    } catch (err) {
+    } catch (error) {
       const errorMessage =
           'Could not authenticate you. Please try again later.';
       _showErrorDialog(errorMessage);
     }
+
     setState(() {
       _isLoading = false;
     });
@@ -213,8 +213,6 @@ class _AuthCardState extends State<AuthCard> {
                     if (value.isEmpty || !value.contains('@')) {
                       return 'Invalid email!';
                     }
-                    return null;
-                    // return null;
                   },
                   onSaved: (value) {
                     _authData['email'] = value;
@@ -228,7 +226,6 @@ class _AuthCardState extends State<AuthCard> {
                     if (value.isEmpty || value.length < 5) {
                       return 'Password is too short!';
                     }
-                    return null;
                   },
                   onSaved: (value) {
                     _authData['password'] = value;
@@ -244,7 +241,6 @@ class _AuthCardState extends State<AuthCard> {
                             if (value != _passwordController.text) {
                               return 'Passwords do not match!';
                             }
-                            return null;
                           }
                         : null,
                   ),
